@@ -1,10 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-    <rect width="512" height="512" rx="100" fill="#1a1a1a"/>
-    <text x="50%" y="55%" font-family="Arial, sans-serif" font-weight="900" font-size="280" fill="url(#grad)" text-anchor="middle" dominant-baseline="middle">ito</text>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
     <defs>
-        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#646cff;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#ffd700;stop-opacity:1" />
+        <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#7ccf6a;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#e9edf5;stop-opacity:1" />
         </linearGradient>
     </defs>
+    <!-- Background (matching app bg color) -->
+    <rect width="512" height="512" rx="114" fill="#f6f8fb" />
+
+    <!-- "ito" text -->
+    <text x="50%" y="55%"
+          text-anchor="middle"
+          font-family="system-ui, -apple-system, sans-serif"
+          font-weight="900"
+          font-size="280"
+          letter-spacing="-10"
+          fill="url(#textGradient)"
+          dominant-baseline="middle">ito</text>
 </svg>
