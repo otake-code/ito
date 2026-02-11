@@ -134,7 +134,7 @@
         }
 
         /* Distribution screen special layout for consistency */
-        .dist-screen.active {
+        .dist-screen.active, .scrollable-screen.active {
             justify-content: flex-start !important;
             padding-top: 40px;
         }
@@ -237,7 +237,7 @@
             gap: 10px;
             align-items: center;
             background: var(--card-bg);
-            padding: 8px 16px;
+            padding: 8px 4px 8px 16px; /* Reduced right padding to move 'x' button right */
             border-radius: var(--radius);
         }
 
@@ -252,8 +252,11 @@
             background: transparent;
             color: var(--text-muted);
             font-size: 1.5rem;
-            width: 40px;
+            width: 32px; /* Slightly narrower to save space */
             padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* Card Visual */
@@ -300,27 +303,31 @@
             gap: 12px;
         }
 
-        /* Drag Sort */
+        /* Drag Sort (Full screen scroll supported by parent) */
         .sortable-list {
-            flex: 1;
-            overflow-y: auto;
+            width: 100%;
             position: relative;
         }
 
         /* SortableJS Styles & iPhone Effects */
         .sortable-ghost {
-            opacity: 0.2;
-            background: rgba(0, 212, 255, 0.1) !important;
-            border: 2px dashed #86AC41 !important;
+            opacity: 0.3 !important; /* Semi-transparent slot indicating target position */
+            background: rgba(0, 0, 0, 0.05) !important;
         }
 
         .sortable-drag {
-            opacity: 0.98 !important;
+            opacity: 1.0 !important;
             background: #ffffff !important;
-            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.7) !important;
-            border: 4px solid #86AC41 !important;
-            transform: scale(1.1) rotate(-2deg) !important;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.45) !important; /* Deeper shadow for floating feel */
+            transform: scale(1.05) !important; /* Slightly more scale when dragging */
             z-index: 10000 !important;
+            cursor: grabbing;
+        }
+
+        .sortable-chosen {
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2) !important;
+            transform: scale(0.98); /* Slight shrink to 'pick up' the card */
+            transition: transform 0.2s ease;
         }
 
         /* ぷるぷる揺れるアニメーション (iPhone風) */
@@ -648,21 +655,21 @@
         </section>
 
         <!-- 画面8：トーク & 並び替え (統合画面) -->
-        <section id="screen-game-play" class="screen">
-            <div class="topic-header" style="width:100%; background:rgba(0,0,0,0.05); padding:10px 15px; border-radius:12px; margin-bottom:10px;">
-                <p style="color:var(--text-muted); font-size:0.8rem; text-align:center; margin-bottom:2px;">お題</p>
-                <p id="timer-topic" style="color:#000; font-size:1.4rem; font-weight:900; text-align:center;"></p>
+        <section id="screen-game-play" class="screen scrollable-screen">
+            <div class="topic-header" style="width:100%; background:rgba(0,0,0,0.05); padding:6px 15px; border-radius:12px; margin-bottom:8px;">
+                <p id="timer-topic" style="color:#000; font-size:1.1rem; font-weight:800; text-align:center;"></p>
             </div>
 
-            <div id="timer-display" class="timer-val" style="margin-bottom: 5px; font-size: 5rem; color: #000;">03:00</div>
-
-            <div class="timer-controls" style="justify-content:center; gap:20px; margin-bottom:20px;">
-                <button class="secondary" style="width:80px; padding:10px;" onclick="app.adjustTimer(-60)">-1分</button>
-                <button class="secondary" style="width:80px; padding:10px;" onclick="app.adjustTimer(60)">+1分</button>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px;">
+                <div id="timer-display" class="timer-val" style="margin: 0; font-size: 2.5rem; color: #000;">03:00</div>
+                <div class="timer-controls" style="gap:8px;">
+                    <button class="secondary" style="width:60px; height:40px; padding:0; min-width:60px; font-size:0.9rem;" onclick="app.adjustTimer(-60)">-1分</button>
+                    <button class="secondary" style="width:60px; height:40px; padding:0; min-width:60px; font-size:0.9rem;" onclick="app.adjustTimer(60)">+1分</button>
+                </div>
             </div>
 
-            <p class="centered mb-10" style="font-size:1.5rem; font-weight:bold; color:#000;">小さい順に並び替え</p>
-            <div id="sortable-list" class="sortable-list" style="margin-bottom: auto;">
+            <p class="centered mb-10" style="font-size:1rem; font-weight:bold; color:var(--text-muted);">小さい順に並び替え</p>
+            <div id="sortable-list" class="sortable-list" style="width: 100%;">
                 <!-- JSで並び替えUI -->
             </div>
 
@@ -896,12 +903,17 @@
                 // SortableJS Configuration
                 if (this.sortableInstance) this.sortableInstance.destroy();
                 this.sortableInstance = new Sortable(list, {
-                    animation: 300,
-                    delay: 250, // Long press duration (ms)
+                    animation: 450,
+                    easing: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+                    delay: 150,
                     delayOnTouchOnly: true,
-                    draggable: '.sort-card', // Only cards are draggable, not labels
+                    forceFallback: true,      // Disable native drag to allow custom follow behavior
+                    fallbackOnBody: true,     // Move the dragged element to <body> for better tracking
+                    fallbackTolerance: 5,     // Slight movement allowed before drag starts
+                    draggable: '.sort-card',
                     ghostClass: 'sortable-ghost',
                     dragClass: 'sortable-drag',
+                    chosenClass: 'sortable-chosen',
                     onStart: () => {
                         list.classList.add('is-dragging');
                         list.querySelectorAll('.sort-card').forEach(el => el.classList.add('shaking'));
@@ -933,10 +945,16 @@
                     const p = this.state.players[pIdx];
                     const card = document.createElement('div');
                     card.className = 'sort-card';
+                    // 結果発表のカードデザインを流用
                     card.style.border = `6px solid ${p.color}`;
+                    card.style.padding = '24px';
+                    card.style.marginBottom = '16px';
+                    card.style.width = '100%';
+                    card.style.maxWidth = '400px';
+                    card.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
                     card.innerHTML = `
                         <input type="hidden" class="p-idx" value="${pIdx}">
-                        <span style="font-weight: 950; font-size: 1.5rem; color: #000;">${p.name}</span>
+                        <div style="font-weight: 950; font-size: 1.5rem; color: #000; line-height: 1;">${p.name}</div>
                     `;
                     list.appendChild(card);
                 });
@@ -1047,7 +1065,7 @@
              */
             showGameOver(isClear) {
                 const status = document.getElementById('game-status');
-                status.innerText = isClear ? 'MISSION CLEAR!' : 'Game Over';
+                status.innerText = isClear ? 'MISSION CLEAR!' : 'MISSION FAILED';
                 status.classList.add(isClear ? 'status-clear' : 'status-error');
                 status.style.display = 'flex'; // オーバーレイを表示
 
