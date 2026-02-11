@@ -17,8 +17,9 @@
     <meta name="apple-mobile-web-app-title" content="ito">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-    <!-- SortableJS Library -->
+    <!-- SortableJS Library & Swap Plugin -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/plugins/Swap/Swap.min.js"></script>
     <style>
         :root {
             /* --- デザインシステム：ベースカラー --- */
@@ -307,27 +308,29 @@
         .sortable-list {
             width: 100%;
             position: relative;
+            /* touch-action: none; を削除：ブラウザや環境によってドラッグ開始を阻害する場合があるため */
         }
 
         /* SortableJS Styles & iPhone Effects */
-        .sortable-ghost {
-            opacity: 0.3 !important; /* Semi-transparent slot indicating target position */
-            background: rgba(0, 0, 0, 0.05) !important;
-        }
-
+        /* 並び替え中のスタイル（スライド方式） */
         .sortable-drag {
             opacity: 1.0 !important;
-            background: #ffffff !important;
-            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.45) !important; /* Deeper shadow for floating feel */
-            transform: scale(1.05) !important; /* Slightly more scale when dragging */
             z-index: 10000 !important;
             cursor: grabbing;
         }
 
+        .sortable-ghost {
+            opacity: 0.4 !important; /* 移動先の隙間は薄く表示 */
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
         .sortable-chosen {
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2) !important;
-            transform: scale(0.98); /* Slight shrink to 'pick up' the card */
-            transition: transform 0.2s ease;
+            opacity: 1.0 !important;
+        }
+
+        .sortable-chosen {
+            opacity: 1.0 !important; /* リスト内のカードは常に実体を表示 */
         }
 
         /* ぷるぷる揺れるアニメーション (iPhone風) */
@@ -476,6 +479,19 @@
             align-items: center;
             justify-content: center;
             position: relative;
+        }
+
+        /* エラー時：枠をグレーにする */
+        .was-smaller .card-front, .was-smaller .card-back {
+            background: #d1d9e6 !important;
+            border-color: #abb2bf !important;
+        }
+        .was-smaller .r-name {
+            color: #5c6370 !important;
+        }
+        /* 数字の色は白のまま維持する */
+        .was-smaller .big-number {
+            color: white !important;
         }
 
         .card-front {
@@ -900,30 +916,30 @@
                 this.state.sortingOrder = this.state.players.map((_, i) => i);
                 this.renderSortingCards();
 
-                // SortableJS Configuration
-                if (this.sortableInstance) this.sortableInstance.destroy();
                 this.sortableInstance = new Sortable(list, {
-                    animation: 450,
-                    easing: "cubic-bezier(0.34, 1.56, 0.64, 1)",
-                    delay: 150,
+                    animation: 200,           // 標準のアニメーション速度
+                    easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+                    delay: 0,                 // PC/マウスは即反応
                     delayOnTouchOnly: true,
-                    forceFallback: true,      // Disable native drag to allow custom follow behavior
-                    fallbackOnBody: true,     // Move the dragged element to <body> for better tracking
-                    fallbackTolerance: 5,     // Slight movement allowed before drag starts
-                    draggable: '.sort-card',
+                    touchStartThreshold: 3,   // 誤動作防止
+                    forceFallback: false,     // ネイティブドラッグに戻して動作を安定化
+                    fallbackOnBody: false,    // ボディに追加しない
+                    draggable: '.sort-card',  // 対象要素
                     ghostClass: 'sortable-ghost',
                     dragClass: 'sortable-drag',
                     chosenClass: 'sortable-chosen',
-                    onStart: () => {
+                    onStart: (evt) => {
                         list.classList.add('is-dragging');
-                        list.querySelectorAll('.sort-card').forEach(el => el.classList.add('shaking'));
                         if (navigator.vibrate) navigator.vibrate(50);
                     },
                     onEnd: () => {
                         list.classList.remove('is-dragging');
-                        list.querySelectorAll('.sort-card').forEach(el => el.classList.remove('shaking'));
+                        // 全てのカードの透明度を確実にリセット
+                        list.querySelectorAll('.sort-card').forEach(el => {
+                            el.style.opacity = '';
+                        });
 
-                        // Sync order to state
+                        // 状態を同期
                         const pIndexes = Array.from(list.querySelectorAll('.p-idx')).map(el => parseInt(el.value));
                         this.state.sortingOrder = pIndexes;
                         this.saveState();
@@ -1036,11 +1052,16 @@
                 // Vibrate for feedback
                 if (navigator.vibrate) navigator.vibrate([10, 30, 20]);
 
-                let prevNum = (i > 0) ? this.state.players[this.state.sortingOrder[i-1]].number : -1;
+                const prevCard = (i > 0) ? cards[i-1] : null;
+                const prevNum = prevCard ? this.state.players[this.state.sortingOrder[i-1]].number : -1;
+                const prevWasError = prevCard && prevCard.classList.contains('was-smaller');
 
-                if (num < prevNum) {
+                // 判定ロジック：
+                // 1. 前のカードがエラー(was-smaller)だった場合は、今回は「リセット」として必ず普通に表示する。
+                // 2. 前のカードが正常だった場合のみ、数字の大小を比較して判定する。
+                if (prevCard && !prevWasError && num < prevNum) {
                     this.state.hasError = true;
-                    // ミスしてもすぐには終了させず、hasErrorを記録するのみにする
+                    card.classList.add('was-smaller'); // ミスしたカードをグレーにする
                 }
 
                 this.state.revealIndex++;
