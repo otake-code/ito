@@ -7,9 +7,7 @@ const ASSETS = [
   './index.html',
   './manifest.json',
   './favicon.svg',
-  './icon-192.png',
-  './icon-512.png',
-  './favicon.svg'
+  './apple-touch-icon.png'
 ];
 
 // インストール時に必要な資産をキャッシュに保存
