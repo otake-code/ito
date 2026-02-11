@@ -212,6 +212,7 @@
 
         .number-control button {
             width: 60px;
+            min-width: 0;
             height: 60px;
             border-radius: var(--radius);
             font-size: 1.5rem;
@@ -605,9 +606,9 @@
         <section id="screen-players" class="screen">
             <h2 class="screen-title">プレイヤー設定</h2>
             <div class="number-control">
-                <button class="secondary" onclick="app.updatePlayerCount(-1)">←</button>
+                <button class="secondary" onclick="app.updatePlayerCount(-1)">◀</button>
                 <div id="player-count-val" class="number-value">3</div>
-                <button class="secondary" onclick="app.updatePlayerCount(1)">→</button>
+                <button class="secondary" onclick="app.updatePlayerCount(1)">▶</button>
             </div>
             <div id="player-list" class="player-list">
                 <!-- JSで動的生成 -->
@@ -627,9 +628,9 @@
             <div class="mt-20">
                 <label style="display:block; text-align:center;">トーク時間（分）</label>
                 <div class="number-control">
-                    <button class="secondary" onclick="app.updateTimerSetting(-1)">←</button>
+                    <button class="secondary" onclick="app.updateTimerSetting(-1)">◀</button>
                     <div id="timer-setting-val" class="number-value">3</div>
-                    <button class="secondary" onclick="app.updateTimerSetting(1)">→</button>
+                    <button class="secondary" onclick="app.updateTimerSetting(1)">▶</button>
                 </div>
             </div>
             <div class="btn-group">
@@ -1086,7 +1087,7 @@
              */
             showGameOver(isClear) {
                 const status = document.getElementById('game-status');
-                status.innerText = isClear ? 'MISSION CLEAR!' : 'MISSION FAILED';
+                status.innerText = isClear ? 'CLEAR!' : 'FAILED';
                 status.classList.add(isClear ? 'status-clear' : 'status-error');
                 status.style.display = 'flex'; // オーバーレイを表示
 
