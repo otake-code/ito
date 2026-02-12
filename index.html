@@ -737,7 +737,7 @@
         </section>
 
         <!-- 画面10：結果発表 -->
-        <section id="screen-result" class="screen">
+        <section id="screen-result" class="screen" onclick="app.handleResultClick(event)">
             <h2 class="screen-title">結果発表</h2>
             <div id="game-status" class="game-status"></div>
             <div id="reveal-container" class="reveal-container">
@@ -1075,7 +1075,7 @@
                             </div>
                         </div>
                     `;
-                    card.onclick = () => this.revealNext(i);
+                    // card.onclick = () => this.revealNext(i); // Removed individual click handler
                     container.appendChild(card);
                 });
 
@@ -1091,7 +1091,21 @@
                 }, 100);
             },
 
+            // New method to handle clicks anywhere on the result screen
+            handleResultClick(e) {
+                // Do nothing if clicking buttons or interactions within them
+                if (e.target.closest('button')) return;
+
+                // Only trigger if game is not over
+                if (!this.state.isGameOver) {
+                    this.revealNext(this.state.revealIndex);
+                }
+            },
+
             revealNext(i) {
+                if (this.state.isGameOver) return;
+                if (i >= this.state.playerCount) return;
+
                 if (i !== this.state.revealIndex) return;
 
                 const cards = document.querySelectorAll('.reveal-card');
