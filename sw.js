@@ -1,7 +1,7 @@
 /**
  * サービスワーカー：オフラインでの動作とキャッシュ管理を担当
  */
-const CACHE_NAME = 'ito-app-v3';
+const CACHE_NAME = '価値観当てゲーム-app-v3';
 const ASSETS = [
   './',
   './index.html',

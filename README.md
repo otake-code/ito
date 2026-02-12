@@ -1,16 +1,15 @@
-# ito Web App (1台完結版)
+# 価値観当てゲーム Web App (1台完結版)
 
-1台のスマホで遊べる「ito」アプリです。1〜100の数字を各プレイヤーにランダム配布し、お題に合わせて表現して並べるゲームをサポートします。
+1台のスマホで遊べる「」アプリです。1〜100の数字を各プレイヤーにランダム配布し、お題に合わせて表現して並べるゲームをサポートします。
 
-サーバー不要・無料で運用可能なPWA（Webアプリ）です。
+サーバー不要・無料で運用可能なWebアプリです。
 
 ## 📸 プレイ画面
 
-<p align="center">
-  <img src="image/image.png" alt="Screenshot 1" width="30%">
-  <img src="image/image2.png" alt="Screenshot 2" width="30%">
-  <img src="image/image3.png" alt="Screenshot 3" width="30%">
-</p>
+| 数字確認 | 推測して並び替え | 結果画面 |
+| :---: | :---: | :---: |
+| <img src="image/image.png" width="100%"> | <img src="image/image2.png" width="100%"> | <img src="image/image3.png" width="100%"> |
+
 
 ---
 
@@ -47,7 +46,7 @@
 ## 📂 ディレクトリ構成
 
 ```text
-ito/
+価値観当てゲーム/
 ├── index.html      # 本体（HTML/CSS/JS統合版）
 ├── manifest.json   # PWA設定
 ├── sw.js           # オフライン動作制御
@@ -70,4 +69,4 @@ ito/
 MIT License
 自由に改造・配布OK
 
-Enjoy ito 🎉
+Enjoy 価値観当てゲーム 🎉

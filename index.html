@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ito - 1台で遊べる協力ゲーム</title>
-    <meta name="description" content="1台のスマホでみんなで遊べる協力数字ゲーム「ito」のWebアプリ版。">
+    <title>価値観当てゲーム - 1台で遊べる協力ゲーム</title>
+    <meta name="description" content="1台のスマホでみんなで遊べる協力数字ゲーム「価値観当てゲーム」のWebアプリ版。">
 
     <!-- PWA -->
     <meta name="theme-color" content="#34675C">
@@ -14,7 +14,7 @@
     <!-- iOS support -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="ito">
+    <meta name="apple-mobile-web-app-title" content="価値観当てゲーム">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
     <!-- SortableJS Library & Swap Plugin -->
@@ -968,7 +968,7 @@
                 this.sortableInstance = new Sortable(list, {
                     animation: 200,           // 標準のアニメーション速度
                     easing: "cubic-bezier(0.25, 1, 0.5, 1)",
-                    delay: 0,                 // PC/マウスは即反応
+                    delay: 100,               // PC/マウスは即反応
                     delayOnTouchOnly: true,
                     touchStartThreshold: 3,   // 誤動作防止
                     forceFallback: false,     // ネイティブドラッグに戻して動作を安定化
@@ -1172,17 +1172,17 @@
 
             // --- 状態保存 ---
             saveState() {
-                localStorage.setItem('ito_players', JSON.stringify(this.state.players));
-                localStorage.setItem('ito_topic', this.state.topic);
+                localStorage.setItem('価値観当てゲーム_players', JSON.stringify(this.state.players));
+                localStorage.setItem('価値観当てゲーム_topic', this.state.topic);
             },
             loadState() {
-                const saved = localStorage.getItem('ito_players');
+                const saved = localStorage.getItem('価値観当てゲーム_players');
                 if (saved) {
                     this.state.players = JSON.parse(saved);
                     this.state.playerCount = this.state.players.length;
                     document.getElementById('player-count-val').innerText = this.state.playerCount;
                 }
-                const topic = localStorage.getItem('ito_topic');
+                const topic = localStorage.getItem('価値観当てゲーム_topic');
                 if (topic) document.getElementById('topic-input').value = topic;
             },
 

@@ -141,7 +141,7 @@ function showResults() {
         playerIdx: index + 1
     }));
 
-    // 数字の小さい順にソート (itoの基本ルール)
+    // 数字の小さい順にソート (価値観当てゲームの基本ルール)
     results.sort((a, b) => a.num - b.num);
 
     results.forEach((res, i) => {

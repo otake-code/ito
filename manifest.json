@@ -1,6 +1,6 @@
 {
-  "name": "ito - 1台で遊べるゲーム",
-  "short_name": "ito",
+  "name": "価値観当てゲーム - 1台で遊べるゲーム",
+  "short_name": "価値観当てゲーム",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#34675C",
