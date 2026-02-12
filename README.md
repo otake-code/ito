@@ -1,8 +1,16 @@
 # ito Web App (1台完結版)
 
-1台のスマホで遊べる「ito」補助アプリです。1〜100の数字を各プレイヤーにランダム配布し、お題に合わせて表現して並べるゲームをサポートします。
+1台のスマホで遊べる「ito」アプリです。1〜100の数字を各プレイヤーにランダム配布し、お題に合わせて表現して並べるゲームをサポートします。
 
 サーバー不要・無料で運用可能なPWA（Webアプリ）です。
+
+## 📸 プレイ画面
+
+<p align="center">
+  <img src="image/image.png" alt="Screenshot 1" width="30%">
+  <img src="image/image2.png" alt="Screenshot 2" width="30%">
+  <img src="image/image3.png" alt="Screenshot 3" width="30%">
+</p>
 
 ---
 
