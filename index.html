@@ -140,6 +140,40 @@
             padding-top: 40px;
         }
 
+        /* Fixed Layout for Screens like Player Settings */
+        .screen.fixed-layout.active {
+            justify-content: flex-start !important;
+            padding: 0 !important; /* Reset padding to let header/content handle it */
+            overflow: hidden; /* Disable whole-screen scroll */
+        }
+
+        .screen.fixed-layout .screen-header {
+            flex-shrink: 0;
+            width: 100%;
+            padding: 20px 20px 0 20px;
+            background: var(--bg-color);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .screen.fixed-layout .screen-content {
+            flex: 1;
+            width: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 10px 20px;
+        }
+
+        .screen.fixed-layout .btn-group {
+            flex-shrink: 0;
+            margin-top: 0;
+            padding: 20px;
+            background: var(--bg-color);
+            border-top: 1px solid rgba(0,0,0,0.05); /* Optional: explicit separation */
+        }
+
         /* Buttons */
         .btn-group {
             display: flex;
@@ -603,16 +637,23 @@
         </section>
 
         <!-- 画面2：プレイヤー設定 -->
-        <section id="screen-players" class="screen">
-            <h2 class="screen-title">プレイヤー設定</h2>
-            <div class="number-control">
-                <button class="secondary" onclick="app.updatePlayerCount(-1)">◀</button>
-                <div id="player-count-val" class="number-value">3</div>
-                <button class="secondary" onclick="app.updatePlayerCount(1)">▶</button>
+        <!-- 画面2：プレイヤー設定 -->
+        <section id="screen-players" class="screen fixed-layout">
+            <div class="screen-header">
+                <h2 class="screen-title">プレイヤー設定</h2>
+                <div class="number-control">
+                    <button class="secondary" onclick="app.updatePlayerCount(-1)">◀</button>
+                    <div id="player-count-val" class="number-value">3</div>
+                    <button class="secondary" onclick="app.updatePlayerCount(1)">▶</button>
+                </div>
             </div>
-            <div id="player-list" class="player-list">
-                <!-- JSで動的生成 -->
+
+            <div id="screen-players-content" class="screen-content">
+                <div id="player-list" class="player-list">
+                    <!-- JSで動的生成 -->
+                </div>
             </div>
+
             <div class="btn-group">
                 <button class="primary" onclick="app.navTo('game-setup')">ゲーム設定へ</button>
             </div>
@@ -914,6 +955,13 @@
             // --- 並び替え (SortableJS) ---
             initSorting() {
                 const list = document.getElementById('sortable-list');
+
+                // 既存のインスタンスがあれば破棄する
+                if (this.sortableInstance) {
+                    this.sortableInstance.destroy();
+                    this.sortableInstance = null;
+                }
+
                 this.state.sortingOrder = this.state.players.map((_, i) => i);
                 this.renderSortingCards();
 
@@ -1004,10 +1052,16 @@
                 smallLabel.innerText = '▼ 小さい';
                 container.appendChild(smallLabel);
 
-                this.state.sortingOrder.forEach((pIdx, i) => {
+                // Display from Small (Bottom) to Large (Top)
+                // sortingOrder is [Large ... Small] (User input: Top to Bottom)
+                // We want to append Small first (Bottom), so we need to reverse sortingOrder.
+                const displayList = [...this.state.sortingOrder].reverse();
+
+                displayList.forEach((pIdx, i) => {
                     const p = this.state.players[pIdx];
                     const card = document.createElement('div');
                     card.className = 'reveal-card';
+                    card.dataset.pIdx = pIdx; // Store player index for easy retrieval
                     card.innerHTML = `
                         <div class="card-inner">
                             <div class="card-front" style="border: 6px solid ${p.color}; padding: 24px;">
@@ -1047,19 +1101,26 @@
                 card.classList.add('flipped');
                 card.classList.remove('current');
 
-                const pIdx = this.state.sortingOrder[i];
+                const pIdx = parseInt(card.dataset.pIdx);
                 const num = this.state.players[pIdx].number;
 
                 // Vibrate for feedback
                 if (navigator.vibrate) navigator.vibrate([10, 30, 20]);
 
                 const prevCard = (i > 0) ? cards[i-1] : null;
-                const prevNum = prevCard ? this.state.players[this.state.sortingOrder[i-1]].number : -1;
-                const prevWasError = prevCard && prevCard.classList.contains('was-smaller');
+                let prevNum = -1;
+                let prevWasError = false;
+
+                if (prevCard) {
+                    const prevPIdx = parseInt(prevCard.dataset.pIdx);
+                    prevNum = this.state.players[prevPIdx].number;
+                    prevWasError = prevCard.classList.contains('was-smaller');
+                }
 
                 // 判定ロジック：
-                // 1. 前のカードがエラー(was-smaller)だった場合は、今回は「リセット」として必ず普通に表示する。
-                // 2. 前のカードが正常だった場合のみ、数字の大小を比較して判定する。
+                // revealOrder is Small -> Large.
+                // So current num should be >= prevNum.
+                // If num < prevNum, it's an error.
                 if (prevCard && !prevWasError && num < prevNum) {
                     this.state.hasError = true;
                     card.classList.add('was-smaller'); // ミスしたカードをグレーにする
