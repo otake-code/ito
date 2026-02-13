@@ -542,18 +542,87 @@
             justify-content: center;
             position: relative;
         }
+        /* ===== Flipと衝突しない 成功/失敗FX（transform不使用） ===== */
+        .reveal-card .card-back {
+        position: absolute;
+        }
+
+        /* 光のオーバーレイ */
+        .reveal-card .card-back::after {
+        content: "";
+        position: absolute;
+        inset: -8px;
+        border-radius: 24px;
+        pointer-events: none;
+        opacity: 0;
+        box-shadow: 0 0 0 rgba(46, 204, 113, 0);
+        }
+
+        /* 成功：緑グロー */
+        .reveal-card.fx-success .card-back::after {
+        animation: glowSuccess 420ms ease-out;
+        }
+        @keyframes glowSuccess {
+        0%   { opacity: 0; box-shadow: 0 0 0 rgba(46,204,113,0); }
+        35%  { opacity: 1; box-shadow: 0 0 22px rgba(46,204,113,0.60); }
+        100% { opacity: 0; box-shadow: 0 0 0 rgba(46,204,113,0); }
+        }
+
+        /* 成功時のポップアニメ（グローと同時に適用） */
+        .reveal-card.fx-success {
+            animation: popSuccess 400ms ease-out;
+        }
+        @keyframes popSuccess {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.08); } /* 少し拡大 */
+            100% { transform: scale(1); }
+        }
+
+        /* 失敗：赤グロー + ちょい揺れ（揺れは transform を card-inner に当てない） */
+        .reveal-card.fx-failure .card-back::after {
+        animation: glowFailure 420ms ease-out;
+        }
+        @keyframes glowFailure {
+        0%   { opacity: 0; box-shadow: 0 0 0 rgba(255,77,79,0); }
+        35%  { opacity: 1; box-shadow: 0 0 22px rgba(255,77,79,0.60); }
+        100% { opacity: 0; box-shadow: 0 0 0 rgba(255,77,79,0); }
+        }
+
+        /* 失敗時の揺れ：カード全体（外側）を少しだけ */
+        .reveal-card.fx-failure {
+        animation: shakeCard 360ms ease-in-out;
+        }
+        @keyframes shakeCard {
+        0%   { transform: translateX(0); }
+        20%  { transform: translateX(-5px); }
+        40%  { transform: translateX(5px); }
+        60%  { transform: translateX(-4px); }
+        80%  { transform: translateX(4px); }
+        100% { transform: translateX(0); }
+        }
+
 
         /* エラー時：枠をグレーにする */
-        .was-smaller .card-front, .was-smaller .card-back {
-            background: #d1d9e6 !important;
-            border-color: #abb2bf !important;
+        .was-smaller .card-back {
+            background: #bdc3c7 !important;
+            border-color: #bdc3c7 !important; /* Gray border for failure */
         }
-        .was-smaller .r-name {
-            color: #5c6370 !important;
-        }
+        /* .was-smaller .r-name {
+            color: #7f8c8d !important;
+        } */
         /* 数字の色は白のまま維持する */
         .was-smaller .big-number {
-            color: white !important;
+            color: #ffffff !important;
+            opacity: 0.95;
+        }
+        /* 成功時：枠を緑にする */
+        .was-correct .card-back {
+            border-color: #2ecc71 !important; /* Green border for success */
+            background-color: #f0fff4 !important; /* Light green bg */
+        }
+        .was-correct .big-number {
+            color: #ffffff !important; /* White number */
+            opacity: 1;
         }
 
         .card-front {
@@ -571,7 +640,8 @@
         .reveal-card.current .card-inner {
             outline: 4px solid var(--accent-color);
             outline-offset: 8px;
-            transform: scale(1.05);
+            /* transform: scale(...) は消す */
+            box-shadow: 0 0 0 6px rgba(74, 125, 255, 0.18), 0 12px 30px rgba(0,0,0,0.18);
         }
 
         /* Player color dots/borders */
@@ -597,6 +667,7 @@
             padding: 10px;
             font-size: 1.2rem;
             opacity: 0.8;
+            margin: 15px 0; /* Add margin to separate from cards */
         }
 
         .game-status {
@@ -605,7 +676,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.4); /* Light fade */
             z-index: 9999;
             display: none;
             flex-direction: column;
@@ -614,8 +685,20 @@
             font-size: 4rem;
             font-weight: 900;
             text-align: center;
-            backdrop-filter: blur(10px);
+            /* backdrop-filter: blur(10px); Remove blur */
             cursor: pointer;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .result-text {
+            display: inline-block;
+            animation: textPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes textPop {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         .game-status::after {
@@ -624,6 +707,8 @@
             color: var(--text-muted);
             margin-top: 20px;
             font-weight: normal;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 0.5s forwards; /* Delay match text pop */
         }
 
         .status-clear { color: var(--success-color); }
@@ -637,28 +722,6 @@
         @keyframes popIn {
             0% { transform: scale(0.8); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
-        }
-
-        /* 正解アニメ（軽量版） */
-        @keyframes successPop {
-        0% {
-            transform: scale(1);
-            box-shadow: 0 0 0 rgba(46, 204, 113, 0);
-        }
-        50% {
-            transform: scale(1.05);
-            box-shadow: 0 0 14px rgba(46, 204, 113, 0.5);
-        }
-        100% {
-            transform: scale(1);
-            box-shadow: 0 0 0 rgba(46, 204, 113, 0);
-        }
-        }
-
-        .anim-success {
-        animation: successPop 0.4s ease-out;
-        will-change: transform;
-        z-index: 10;
         }
 
 
@@ -694,10 +757,6 @@
             80% { transform: translateX(5px); }
             100% { transform: translateX(0); }
         }
-        /* Override specifically for failure flash */
-        .anim-flash-failure {
-            animation: animFlashFailure 0.5s ease-in-out forwards;
-        }
 
         /* Setup Screen Styling */
         .setup-card {
@@ -730,6 +789,42 @@
         }
         .custom-select:focus {
             border-color: var(--secondary-color);
+        }
+
+        /* How To Play Screen */
+        .howto-step {
+            margin-bottom: 30px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .howto-step h3 {
+            margin-bottom: 16px;
+            color: var(--primary-color); /* Title color */
+            font-size: 1.3rem;
+            font-weight: 800;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 8px;
+        }
+        .howto-image-container {
+            width: 100%;
+            margin-bottom: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+        .howto-image {
+            width: 100%;
+            max-width: 260px;
+            max-height: 300px;  /* 高さ上限 */
+            height: auto;
+            object-fit: contain;
+        }
+        .howto-text {
+            line-height: 1.8;
+            color: var(--text-color);
+            font-size: 1rem;
         }
         .btn-gacha {
         background: linear-gradient(135deg,#4a7dff,#7aa6ff);
@@ -948,16 +1043,42 @@
             </div>
         </section>
 
-        <!-- 遊び方画面（仕様外だが遷移先として簡易実装） -->
-        <section id="screen-howto" class="screen">
-            <h2 class="screen-title">あそびかた</h2>
-            <div style="flex:1; overflow-y:auto; padding:10px;">
-                <p>①. 1〜100の数字が各プレイヤーに1枚配られます。</p><br>
-                <p>②. お題に沿って、自分の数字を言葉で表現します。</p><br>
-                <p>③. 全員で話し合い、数字が小さいと思う順に並べます。</p><br>
-                <p>④. 順番に数字を公開し、すべて小さい順ならクリア！</p>
+        <!-- 画面：あそびかた -->
+        <section id="screen-howto" class="screen fixed-layout">
+            <button class="btn-back" onclick="app.navTo('title')">
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            </button>
+            <div class="screen-header">
+                <h2 class="screen-title">あそびかた</h2>
             </div>
-            <button class="secondary" onclick="app.navTo('title')">戻る</button>
+
+            <div class="screen-content howto-content">
+                <div class="howto-step">
+                    <h3>1. 数字を確認</h3>
+                    <div class="howto-image-container">
+                        <img src="image/image.png" alt="数字確認" class="howto-image">
+                    </div>
+                    <p class="howto-text">1〜100の数字がランダムに配られます。<br>カードをタップして、自分だけの数字をこっそり確認しましょう。</p>
+                </div>
+
+                <div class="howto-step">
+                    <h3>2. 話し合い・並び替え</h3>
+                    <div class="howto-image-container">
+                        <img src="image/image2.png" alt="話し合い" class="howto-image">
+                    </div>
+                    <p class="howto-text">お題（例：「人気の食べ物」）に沿って、自分の数字を言葉で表現します。<br>全員で相談して、数字が小さい順に並び替えましょう。</p>
+                </div>
+
+                <div class="howto-step">
+                    <h3>3. 結果発表</h3>
+                    <div class="howto-image-container">
+                        <img src="image/image3.png" alt="結果発表" class="howto-image">
+                    </div>
+                    <p class="howto-text">答え合わせです。<br>すべてのカードが小さい順に並んでいればゲームクリア！</p>
+                </div>
+
+                <div style="height: 40px;"></div>
+            </div>
         </section>
 
         <!-- 画面2：プレイヤー設定 -->
@@ -1590,63 +1711,47 @@
                 card.classList.add('flipped');
                 card.classList.remove('current'); // 強調解除
 
-                // めくったカードを画面中央に持ってくる（すぐに見えるように）
+                // めくったカードを画面中央に持ってくる
                 card.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                const pIdx = parseInt(card.dataset.pIdx);
+                const pIdx = Number(card.dataset.pIdx);
                 const num = this.state.players[pIdx].number;
 
                 // Vibrate for feedback
                 if (navigator.vibrate) navigator.vibrate([10, 30, 20]);
 
-                const prevCard = (i > 0) ? cards[i-1] : null;
+                const prevCard = (i > 0) ? cards[i - 1] : null;
                 let prevNum = -1;
-                let prevWasError = false;
 
                 if (prevCard) {
-                    const prevPIdx = parseInt(prevCard.dataset.pIdx);
-                    prevNum = this.state.players[prevPIdx].number;
-                    prevWasError = prevCard.classList.contains('was-smaller');
+                const prevPIdx = Number(prevCard.dataset.pIdx);
+                prevNum = this.state.players[prevPIdx].number;
                 }
 
-                // 判定ロジック：
-                // revealOrder is Small -> Large.
-                // So current num should be >= prevNum.
-                // If num < prevNum, it's an error.
+                // 判定：Small -> Large なので current >= prev が正しい。current < prev ならエラー
                 let isError = false;
                 if (prevCard && num < prevNum) {
-                    this.state.hasError = true;
-                    isError = true;
-                    card.classList.add('was-smaller'); // ミスしたカードをグレーにする (CSSで制御)
+                this.state.hasError = true;
+                isError = true;
+                card.classList.add('was-smaller');
                 }
 
-                // アニメーション適用（1枚目は何もしない＝prevCardがある場合のみ演出）
-                if (prevCard) {
-                    // フリップアニメーション(0.8s)と合わせるか、フリップ後にするか。
-                    // ユーザー体験的には「めくった瞬間」にわかりたい。
-                    // しかしDOM上はめくると同時にクラスが付与される。
-                    // フリップ中（裏面が見え始めた頃）に光るとかっこいい。
-                    const target = card.querySelector('.card-inner-color'); // 裏面の色領域
+                setTimeout(() => {
+            // まず前回の演出クラスを消す（連続でも毎回走らせたい）
+            card.classList.remove('fx-success', 'fx-failure');
 
-                    // アニメーションのリセット（再実行用）
-                    target.classList.remove('anim-success', 'anim-failure');
-                    void target.offsetWidth; // reflow
+            // 再トリガー用：一旦レイアウトを挟む
+            void card.offsetWidth;
 
-                    if (isError) {
-                        // 失敗演出 (0.4s)
-                        // フリップが0.8sなので、少し遅らせる？
-                        // いや、すぐに発火でOK。裏面が見える頃に赤くなる。
-                        // ただし、rotateY(180deg) されているので、translateXの方向が逆に見えるかもだが、shakeなら気にならない。
-                        setTimeout(() => {
-                           target.classList.add('anim-failure');
-                        }, 200); // 少しだけ待つ
-                    } else {
-                        // 正解演出 (0.3s)
-                        setTimeout(() => {
-                            target.classList.add('anim-success');
-                        }, 200);
-                    }
-                }
+            if (isError) {
+                card.classList.add('fx-failure');
+            } else {
+                card.classList.add('was-correct');  // 枠を緑に（これはそのまま）
+                card.classList.add('fx-success');
+            }
+            }, 200);
+
+
 
                 this.state.revealIndex++;
                 if (this.state.revealIndex === this.state.playerCount) {
@@ -1673,8 +1778,9 @@
              */
             showGameOver(isClear) {
                 const status = document.getElementById('game-status');
-                status.innerText = isClear ? 'CLEAR!' : 'FAILED';
-                status.classList.add(isClear ? 'status-clear' : 'status-error');
+                // Use innerHTML to wrap text for animation
+                status.innerHTML = `<span class="result-text">${isClear ? 'CLEAR!' : 'FAILED'}</span>`;
+                status.className = 'game-status ' + (isClear ? 'status-clear' : 'status-error');
                 status.style.display = 'flex'; // オーバーレイを表示
 
                 // 次のゲームや設定へ進むためのボタンを表示
