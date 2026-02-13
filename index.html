@@ -638,6 +638,303 @@
             0% { transform: scale(0.8); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
+
+        /* 正解アニメ（軽量版） */
+        @keyframes successPop {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 0 0 rgba(46, 204, 113, 0);
+        }
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 0 14px rgba(46, 204, 113, 0.5);
+        }
+        100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 rgba(46, 204, 113, 0);
+        }
+        }
+
+        .anim-success {
+        animation: successPop 0.4s ease-out;
+        will-change: transform;
+        z-index: 10;
+        }
+
+
+        /* 失敗：一瞬赤くなる + 軽く横に揺れる (0.4s) */
+        @keyframes failureShake {
+            0% { transform: translateX(0); background-color: #ff4d4f; }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-6px); }
+            80% { transform: translateX(6px); }
+            100% { transform: translateX(0); background-color: inherit; } /* inherit or specific color? inner-color has bg set via inline style usually. */
+        }
+        /* inner-color自体にbackgroundがついているので、!importantで上書きするか、borderで表現するか。
+           ユーザーは「一瞬赤くなる」と言っている。
+           background-colorをアニメーションさせる場合、元の色はinline styleで指定されているため !important が必要かも。
+           ただし keyframes 内で !important は使えないことが多い（ブラウザ依存）。
+           なので、 ::after 疑似要素で赤いオーバーレイをかける手法が無難だが、
+           今回はシンプルに filter を使うか、box-shadowで代用するか。
+           いや、カードの背景を変えたい。
+        */
+        .anim-failure {
+            animation: failureShake 0.4s ease-in-out forwards;
+        }
+        /* キーフレーム内で背景色変更を効かせるため、詳細度を高めるか、JSで制御するが、
+           一旦 box-shadow (赤) の内側拡散(inset) で「赤くなる」を表現してみる。
+           背景色保持のため。
+        */
+        @keyframes failureFlash {
+            0% { transform: translateX(0); box-shadow: inset 0 0 0 100px #ff4d4f; }
+            20% { transform: translateX(-5px); }
+            40% { transform: translateX(5px); }
+            60% { transform: translateX(-5px); box-shadow: inset 0 0 0 0 #ff4d4f; }
+            80% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+        /* Override specifically for failure flash */
+        .anim-flash-failure {
+            animation: animFlashFailure 0.5s ease-in-out forwards;
+        }
+
+        /* Setup Screen Styling */
+        .setup-card {
+            background: #f6f8fb;
+            border-radius: 16px;
+            padding: 24px 20px;
+            margin-bottom: 24px;
+            /* box-shadow: 0 4px 12px rgba(0,0,0,0.05); */
+            /* border: 1px solid rgba(0,0,0,0.05); */
+        }
+        .setup-label {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-color);
+            margin-bottom: 15px;
+            display: block;
+            text-align: center;
+        }
+        .custom-select {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            background-color: #f9f9f9;
+            color: var(--text-color);
+            font-weight: bold;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .custom-select:focus {
+            border-color: var(--secondary-color);
+        }
+        .btn-gacha {
+        background: linear-gradient(135deg,#4a7dff,#7aa6ff);
+        color: white;
+        border: none;
+        border-radius: 14px;
+        padding: 0 20px;
+        font-weight: 900;
+        font-size: 1rem;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+
+        box-shadow:
+            0 4px 10px rgba(255, 94, 98, 0.35),
+            inset 0 -3px 0 rgba(0,0,0,0.15); /* 押せる感 */
+
+        transition: transform 0.08s ease, filter 0.15s ease, box-shadow 0.15s ease;
+    }
+
+        /* 押した時 */
+        .btn-gacha:active {
+            transform: scale(0.95);
+            filter: brightness(0.95);
+            box-shadow:
+                0 2px 5px rgba(255, 94, 98, 0.25),
+                inset 0 2px 4px rgba(0,0,0,0.25);
+        }
+
+        .btn-gacha svg {
+            width: 20px;
+            height: 20px;
+            margin-right: 6px;
+            fill: currentColor;
+        }
+
+        /* Make topic input larger */
+        #topic-input {
+            margin-top: 4px; /* More compact */
+            font-size: 1.4rem; /* Larger text */
+            font-weight: bold;
+            padding: 8px 12px;
+            min-height: 50px; /* Smaller height (approx 1 line + padding) */
+            line-height: 1.3;
+            border: 2px solid #e0e0e0;
+            resize: none;
+        }
+        #topic-input:focus {
+            border-color: var(--primary-color);
+        }
+        /* Segmented Control */
+        .segmented-control {
+            display: flex;
+            background: #e0e0e0;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 10px; /* Reduced from 20px */
+        }
+        .segmented-option {
+            flex: 1;
+            text-align: center;
+            padding: 8px 4px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .segmented-option.active {
+            background: #fff;
+            color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Tab Content Types */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+            /* Prevent height jump */
+            min-height: 140px; /* Reduced from 250px */
+        }
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* Align to top */
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .mode-description {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 10px; /* Reduced from 15px */
+            text-align: center;
+            line-height: 1.4;
+        }
+        .mode-title {
+            font-weight: 800;
+            color: var(--text-color);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* List Mode Styling */
+        .topic-list-group {
+            margin-bottom: 15px;
+        }
+        .topic-list-header {
+            font-weight: bold;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 2px;
+        }
+        .topic-list-item {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+        .topic-list-item:active {
+            background-color: #f5f5f5;
+        }
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            display: flex; /* Always flex, hide with visibility */
+            justify-content: center;
+            align-items: flex-end;
+            backdrop-filter: blur(4px);
+
+            /* Hidden State */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.active {
+            /* Visible State */
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-card {
+            width: 100%;
+            height: 90%; /* Almost full screen */
+            background: #fff;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+
+            /* Hidden State (Slide down) */
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .modal-overlay.active .modal-card {
+            /* Visible State (Slide up) */
+            transform: translateY(0);
+        }
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .modal-close {
+            background: #eee;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 8px; /* Standard rounded rect */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .modal-close:active {
+            background: #ddd;
+        }
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            -webkit-overflow-scrolling: touch;
+        }
     </style>
 </head>
 <body>
@@ -690,23 +987,90 @@
         </section>
 
         <!-- 画面3：ゲーム設定 -->
-        <section id="screen-game-setup" class="screen">
+        <section id="screen-game-setup" class="screen" style="padding-top: 50px;"> <!-- Add padding for back button -->
             <button class="btn-back" onclick="app.navTo('players')">
                 <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
             </button>
-            <h2 class="screen-title">ゲーム設定</h2>
-            <div class="input-group">
-                <label class="mb-10" style="display:block; text-align:center;">~お題~</label>
-                <textarea id="topic-input" placeholder="例：無人島に持っていきたいもの"></textarea>
-            </div>
-            <div class="mt-20">
-                <label style="display:block; text-align:center;">トーク時間（分）</label>
-                <div class="number-control">
-                    <button class="secondary" onclick="app.updateTimerSetting(-1)">◀</button>
-                    <div id="timer-setting-val" class="number-value">3</div>
-                    <button class="secondary" onclick="app.updateTimerSetting(1)">▶</button>
+            <h2 class="screen-title" style="margin-bottom: 20px;">ゲーム設定</h2>
+
+            <div class="screen-content" style="padding: 0 20px;">
+                <!-- お題設定 -->
+                <div class="setup-card">
+                    <label class="setup-label">お題を決めよう！</label>
+
+                    <!-- Segmented Control -->
+                    <div class="segmented-control">
+                        <div class="segmented-option active" onclick="app.switchTab('input')">入力</div>
+                        <div class="segmented-option" onclick="app.switchTab('random')">ランダム</div>
+                        <div class="segmented-option" onclick="app.switchTab('category')">カテゴリ</div>
+                        <div class="segmented-option" onclick="app.switchTab('list')">一覧</div>
+                    </div>
+
+                    <!-- 1. Input Mode -->
+                    <div id="tab-input" class="tab-content active">
+                        <p class="mode-description">
+                            <span class="mode-title"> 自分でお題を自由に決める</span>
+                            好きなお題を入力して遊べます。<br>
+                        </p>
+                    </div>
+
+                    <!-- 2. Random Mode -->
+                    <div id="tab-random" class="tab-content">
+                        <p class="mode-description">
+                            <span class="mode-title"> 全お題から自動で1つ選ぶ</span>
+                            <!-- 迷ったらこれ。<br>すぐ遊びたいとき用の完全おまかせ。 -->
+                        </p>
+                        <button class="btn-gacha" onclick="app.spinTopicGacha('all')" style="width:100%; height:50px;">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.51-3.22-7.52-1.5z"/></svg>
+                            ランダム
+                        </button>
+                    </div>
+
+                    <!-- 3. Category Mode -->
+                    <div id="tab-category" class="tab-content">
+                        <p class="mode-description">
+                            <span class="mode-title"> ジャンルを選んでランダム</span>
+                            <!-- 食べ物・キャラ・感情など、<br>好きなジャンルだけで遊べます。 -->
+                        </p>
+                        <div style="display:flex; gap:10px; flex-direction:column;">
+                            <select id="topic-category" class="custom-select">
+                                <!-- JS Populated -->
+                            </select>
+                            <button class="btn-gacha" onclick="app.spinTopicGacha('category')" style="width:100%; height:50px;">
+                                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.51-3.22-7.52-1.5z"/></svg>
+                                このジャンルでランダム
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 4. List Mode -->
+                    <div id="tab-list" class="tab-content">
+                         <p class="mode-description">
+                            <span class="mode-title"> お題を一覧から選ぶ</span>
+                        </p>
+                        <div style="display: flex; align-items: center; justify-content: center; height: 100%;">
+                             <button class="secondary" onclick="app.showTopicListModal()" style="padding: 10px 20px;">
+                                お題一覧を開く
+                             </button>
+                        </div>
+                    </div>
+
+                    <textarea id="topic-input" placeholder="ここに&#10;お題が表示されます" style="margin-top:15px; min-height:80px;"></textarea>
+
+                </div>
+
+                <!-- タイマー設定 -->
+                <div class="setup-card">
+                    <label class="setup-label">トーク時間</label>
+                    <div class="number-control" style="justify-content: center;">
+                        <button class="secondary" style="width:60px; height:60px; font-size:1.5rem;" onclick="app.updateTimerSetting(-1)">◀</button>
+                        <div id="timer-setting-val" class="number-value" style="font-size:3rem; width:100px;">3</div>
+                        <button class="secondary" style="width:60px; height:60px; font-size:1.5rem;" onclick="app.updateTimerSetting(1)">▶</button>
+                    </div>
+                    <p style="text-align:center; color:var(--text-muted); font-weight:bold; margin-top:5px;">分</p>
                 </div>
             </div>
+
             <div class="btn-group">
                 <button class="primary" onclick="app.startGame()">設定OK！始める</button>
             </div>
@@ -781,24 +1145,40 @@
 
             <div class="screen-header" style="padding-bottom:10px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
                 <h2 class="screen-title" style="margin-bottom:10px;">結果発表</h2>
-                <div class="reveal-label" style="padding:5px;">▲ 大きい</div>
             </div>
 
             <div class="screen-content" style="padding:10px 20px;">
+                <div class="reveal-label" style="padding:5px; text-align:center;">▲ 大きい</div>
                 <div id="reveal-container" class="reveal-container" style="padding:0;">
                     <!-- タップで次をめくる -->
                 </div>
+                <div class="reveal-label" style="padding:5px; text-align:center;">▼ 小さい</div>
             </div>
 
             <div class="btn-group" style="padding:10px 20px 20px 20px; background:var(--bg-color); border-top:1px solid rgba(0,0,0,0.05); gap:10px;">
-                <div class="reveal-label" style="padding:5px;">▼ 小さい</div>
                 <div id="result-btns" style="display:none; flex-direction:column; gap:16px; width:100%; align-items:center;">
                     <button class="primary" onclick="app.startGame()">次のゲームへ</button>
                     <button class="secondary" onclick="app.navTo('players')">設定へ</button>
                 </div>
             </div>
         </section>
+
+        <!-- Topic List Modal -->
+        <div id="topic-modal" class="modal-overlay" onclick="app.closeTopicListModal(event)">
+            <div class="modal-card" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <div class="modal-title">お題一覧</div>
+                    <button class="modal-close" onclick="app.closeTopicListModal()">閉じる</button>
+                </div>
+                <div id="modal-topic-list" class="modal-body">
+                    <!-- JS Populated -->
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- External Data -->
+    <script src="main.js"></script>
 
     <script>
         /**
@@ -830,6 +1210,8 @@
              */
             init() {
                 this.loadState();        // 保存されたデータの読み込み
+                this.populateCategories(); // カテゴリーの初期化
+                this.populateTopicList(); // 一覧の初期化
 
                 // 復帰処理
                 if (this.state.currentScreen) {
@@ -851,6 +1233,9 @@
                 document.getElementById('game-status').onclick = () => {
                     document.getElementById('game-status').style.display = 'none';
                 };
+
+                // 初期タブを設定
+                this.switchTab('input');
             },
 
             /**
@@ -1164,6 +1549,8 @@
                     // 次にめくるべきカードをハイライト
                     if (!this.state.isGameOver && cards[this.state.revealIndex]) {
                         cards[this.state.revealIndex].classList.add('current');
+                        // 最初のカードが見えるようにスクロール
+                        cards[this.state.revealIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                 }, 100);
 
@@ -1194,8 +1581,12 @@
                 const card = cards[i];
                 if (card.classList.contains('flipped')) return;
 
+                // カードをめくる処理（結果発表）
                 card.classList.add('flipped');
-                card.classList.remove('current');
+                card.classList.remove('current'); // 強調解除
+
+                // めくったカードを画面中央に持ってくる（すぐに見えるように）
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
                 const pIdx = parseInt(card.dataset.pIdx);
                 const num = this.state.players[pIdx].number;
@@ -1217,9 +1608,39 @@
                 // revealOrder is Small -> Large.
                 // So current num should be >= prevNum.
                 // If num < prevNum, it's an error.
-                if (prevCard && !prevWasError && num < prevNum) {
+                let isError = false;
+                if (prevCard && num < prevNum) {
                     this.state.hasError = true;
-                    card.classList.add('was-smaller'); // ミスしたカードをグレーにする
+                    isError = true;
+                    card.classList.add('was-smaller'); // ミスしたカードをグレーにする (CSSで制御)
+                }
+
+                // アニメーション適用（1枚目は何もしない＝prevCardがある場合のみ演出）
+                if (prevCard) {
+                    // フリップアニメーション(0.8s)と合わせるか、フリップ後にするか。
+                    // ユーザー体験的には「めくった瞬間」にわかりたい。
+                    // しかしDOM上はめくると同時にクラスが付与される。
+                    // フリップ中（裏面が見え始めた頃）に光るとかっこいい。
+                    const target = card.querySelector('.card-inner-color'); // 裏面の色領域
+
+                    // アニメーションのリセット（再実行用）
+                    target.classList.remove('anim-success', 'anim-failure');
+                    void target.offsetWidth; // reflow
+
+                    if (isError) {
+                        // 失敗演出 (0.4s)
+                        // フリップが0.8sなので、少し遅らせる？
+                        // いや、すぐに発火でOK。裏面が見える頃に赤くなる。
+                        // ただし、rotateY(180deg) されているので、translateXの方向が逆に見えるかもだが、shakeなら気にならない。
+                        setTimeout(() => {
+                           target.classList.add('anim-failure');
+                        }, 200); // 少しだけ待つ
+                    } else {
+                        // 正解演出 (0.3s)
+                        setTimeout(() => {
+                            target.classList.add('anim-success');
+                        }, 200);
+                    }
                 }
 
                 this.state.revealIndex++;
@@ -1231,12 +1652,13 @@
                         this.saveState();
                     }, 1000);
                 } else {
+                    // 次のカードへスクロール（少し余裕を持たせる：1.5秒後）
                     setTimeout(() => {
                         const nextCard = cards[this.state.revealIndex];
                         nextCard.classList.add('current');
                         nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         this.saveState();
-                    }, 500);
+                    }, 1500);
                 }
             },
 
@@ -1289,6 +1711,149 @@
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.register('./sw.js').catch(() => {});
                 }
+            },
+
+            // --- Topic UI Logic ---
+            switchTab(mode) {
+                // Update buttons
+                const options = document.querySelectorAll('.segmented-option');
+                options.forEach(opt => opt.classList.remove('active'));
+
+                // Find index based on mode order: input, random, category, list
+                const map = { 'input': 0, 'random': 1, 'category': 2, 'list': 3 };
+                if (options[map[mode]]) options[map[mode]].classList.add('active');
+
+                // Update content
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                const content = document.getElementById('tab-' + mode);
+                if (content) content.classList.add('active');
+
+                // Mode specific actions
+                if (mode === 'input') {
+                    document.getElementById('topic-input').focus();
+                }
+            },
+
+
+            // --- Modal Logic ---
+            showTopicListModal() {
+                const modal = document.getElementById('topic-modal');
+                modal.classList.add('active'); // active for overlay
+                // prevent body scroll
+                document.body.style.overflow = 'hidden';
+            },
+
+            closeTopicListModal(e) {
+                // If event provided, check if it is valid close
+                if (e && e.target !== e.currentTarget) return;
+
+                const modal = document.getElementById('topic-modal');
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            },
+
+            populateCategories() {
+                const select = document.getElementById('topic-category');
+                if (!select || typeof categorizedTopics === 'undefined') return;
+
+                select.innerHTML = ''; // Reset
+
+                Object.keys(categorizedTopics).forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.innerText = cat;
+                    select.appendChild(option);
+                });
+            },
+
+            populateTopicList() {
+                const container = document.getElementById('modal-topic-list'); // Changed target to modal
+                if (!container || typeof categorizedTopics === 'undefined') return;
+
+                container.innerHTML = '';
+
+                Object.keys(categorizedTopics).forEach(cat => {
+                    // Group Header
+                    const header = document.createElement('div');
+                    header.className = 'topic-list-header';
+                    header.innerText = cat;
+                    header.style.padding = "10px 10px 5px";
+                    header.style.backgroundColor = "#fff";
+                    header.style.position = "sticky"; // Might need adjustment in modal
+                    header.style.top = "0";
+                    header.style.zIndex = "10";
+                    container.appendChild(header);
+
+                    // Topics
+                    categorizedTopics[cat].forEach(topic => {
+                        const div = document.createElement('div');
+                        div.className = 'topic-list-item';
+                        div.innerText = topic;
+                        div.onclick = () => {
+                            // Close modal
+                            this.closeTopicListModal();
+
+                            // Use Input mode
+                            this.switchTab('input');
+
+                            const input = document.getElementById('topic-input');
+                            input.value = topic;
+
+                            // Flash effect
+                            input.style.transition = 'none';
+                            input.style.backgroundColor = 'var(--primary-color)';
+                            input.style.color = '#fff';
+                            setTimeout(() => {
+                                input.style.transition = 'background-color 0.5s, color 0.5s';
+                                input.style.backgroundColor = '#fff';
+                                input.style.color = '#000';
+                            }, 100);
+                        };
+                        container.appendChild(div);
+                    });
+                });
+            },
+
+            spinTopicGacha(mode = 'all') {
+                if (typeof categorizedTopics === 'undefined') {
+                    alert('お題データが読み込めませんでした');
+                    return;
+                }
+
+                let candidates = [];
+                // If mode is 'category', read from select. Else 'all'.
+                // Reuse logic slightly.
+
+                if (mode === 'all') {
+                    Object.values(categorizedTopics).forEach(list => {
+                        candidates = candidates.concat(list);
+                    });
+                } else if (mode === 'category') {
+                    const category = document.getElementById('topic-category').value;
+                    candidates = categorizedTopics[category] || [];
+                }
+
+                if (candidates.length === 0) {
+                    alert('お題が見つかりませんでした');
+                    return;
+                }
+
+                // ランダムに選出
+                const randomTopic = candidates[Math.floor(Math.random() * candidates.length)];
+
+                // 入力欄にセット & アニメーション
+                const input = document.getElementById('topic-input');
+                input.value = randomTopic;
+
+                // 簡単な強調演出
+                input.style.transition = 'none';
+                input.style.backgroundColor = 'var(--primary-color)';
+                input.style.color = '#fff';
+                setTimeout(() => {
+                    input.style.transition = 'background-color 0.5s, color 0.5s';
+                    input.style.backgroundColor = '#fff';
+                    input.style.color = '#000';
+                }, 100);
             }
         };
 
