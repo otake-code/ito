@@ -98,6 +98,7 @@
             box-sizing: border-box;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            position: relative; /* 子要素の絶対配置用 */
         }
 
         .screen.active {
@@ -293,6 +294,30 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        /* 戻るボタン（左上固定） */
+        .btn-back {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            min-width: 0;
+            padding: 0;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+        }
+        .btn-back svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
         }
 
         /* Card Visual */
@@ -639,6 +664,9 @@
         <!-- 画面2：プレイヤー設定 -->
         <!-- 画面2：プレイヤー設定 -->
         <section id="screen-players" class="screen fixed-layout">
+            <button class="btn-back" onclick="app.navTo('title')">
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            </button>
             <div class="screen-header">
                 <h2 class="screen-title">プレイヤー設定</h2>
                 <div class="number-control">
@@ -661,6 +689,9 @@
 
         <!-- 画面3：ゲーム設定 -->
         <section id="screen-game-setup" class="screen">
+            <button class="btn-back" onclick="app.navTo('players')">
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            </button>
             <h2 class="screen-title">ゲーム設定</h2>
             <div class="input-group">
                 <label class="mb-10" style="display:block; text-align:center;">~お題~</label>
@@ -771,7 +802,8 @@
                 hasError: false,        // 数字の順序ミスが発生したかの記録
                 timerId: null,          // タイマーのインターバルID
                 timeLeft: 0,            // 残り時間（秒）
-                sortingOrder: []        // プレイヤーが並び替えた後のインデックス順序
+                sortingOrder: [],       // プレイヤーが並び替えた後のインデックス順序
+                currentScreen: 'title'  // 現在の画面ID
             },
 
             /**
@@ -779,7 +811,20 @@
              */
             init() {
                 this.loadState();        // 保存されたデータの読み込み
-                this.navTo('title');     // 初期画面（タイトル）を表示
+
+                // 復帰処理
+                if (this.state.currentScreen) {
+                    this.navTo(this.state.currentScreen);
+
+                    // ゲームプレイ中の場合、タイマーと並び替えを再開
+                    if (this.state.currentScreen === 'game-play') {
+                        this.startTimerLoop();
+                        this.initSorting();
+                    }
+                } else {
+                    this.navTo('title');     // 初期画面（タイトル）を表示
+                }
+
                 this.renderPlayerInputs();
                 this.registerSW();       // PWA用サービスワーカーの登録
 
@@ -800,6 +845,7 @@
                 if (target) {
                     target.classList.add('active');
                     this.state.currentScreen = screenId;
+                    this.saveState(); // 画面遷移ごとに保存
                 }
                 window.scrollTo(0, 0);
 
@@ -819,6 +865,7 @@
                     this.state.playerCount = newCount;
                     document.getElementById('player-count-val').innerText = newCount;
                     this.renderPlayerInputs(); // 入力欄を再生成
+                    this.saveState();
                 }
             },
 
@@ -851,6 +898,7 @@
                 if (newVal >= 1 && newVal <= 30) {
                     this.state.timerSetting = newVal;
                     document.getElementById('timer-setting-val').innerText = newVal;
+                    this.saveState();
                 }
             },
 
@@ -868,7 +916,6 @@
 
                 // お題の保存
                 this.state.topic = document.getElementById('topic-input').value;
-                this.saveState();
 
                 // 1-100の数字をシャッフルして配布（重複なし）
                 const nums = Array.from({length: 100}, (_, i) => i + 1);
@@ -879,6 +926,7 @@
                 this.state.players.forEach((p, i) => p.number = nums[i]);
 
                 this.state.distIndex = 0;
+                this.saveState();
                 this.navTo('dist-info'); // 配布案内画面へ
             },
 
@@ -914,6 +962,7 @@
                 } else {
                     this.navTo('wait-start');
                 }
+                this.saveState();
             },
 
             // --- トーク & 並び替え (統合ロジック) ---
@@ -923,12 +972,21 @@
                 document.getElementById('timer-topic').innerText = `お題：${this.state.topic}`;
                 this.updateTimerUI();
                 this.initSorting();
+                this.startTimerLoop();
+            },
 
-                clearInterval(this.state.timerId);
+            startTimerLoop() {
+                // タイマー表示の復元
+                document.getElementById('timer-topic').innerText = `お題：${this.state.topic}`;
+                this.updateTimerUI();
+
+                if (this.state.timerId) clearInterval(this.state.timerId);
                 this.state.timerId = setInterval(() => {
                     if (this.state.timeLeft > 0) {
                         this.state.timeLeft--;
                         this.updateTimerUI();
+                        // 10秒ごとに自動保存（念のため）
+                        if (this.state.timeLeft % 10 === 0) this.saveState();
                     } else {
                         clearInterval(this.state.timerId);
                     }
@@ -949,6 +1007,11 @@
 
             finishGamePlay() {
                 clearInterval(this.state.timerId);
+                // 結果発表の初期化
+                this.state.revealIndex = 0;
+                this.state.isGameOver = false;
+                this.state.hasError = false;
+                this.saveState();
                 this.navTo('result');
             },
 
@@ -1042,9 +1105,9 @@
                 document.getElementById('result-btns').style.display = 'none';
                 container.innerHTML = '';
 
-                this.state.revealIndex = 0;
-                this.state.isGameOver = false;
-                this.state.hasError = false;
+                this.state.revealIndex = this.state.revealIndex || 0; // 既存の状態があれば維持、なければ0
+                // this.state.isGameOver = false; // ここでリセットしない（finishGamePlayで行う）
+                // this.state.hasError = false;   // 同上
 
                 // Label: Small (Bottom - Appended first)
                 const smallLabel = document.createElement('div');
@@ -1075,6 +1138,10 @@
                             </div>
                         </div>
                     `;
+                    // 復元時：すでにめくられているカードはフリップ状態にする
+                    if (i < this.state.revealIndex) {
+                        card.classList.add('flipped');
+                    }
                     // card.onclick = () => this.revealNext(i); // Removed individual click handler
                     container.appendChild(card);
                 });
@@ -1087,8 +1154,16 @@
 
                 setTimeout(() => {
                     const cards = document.querySelectorAll('.reveal-card');
-                    if (cards[0]) cards[0].classList.add('current');
+                    // 次にめくるべきカードをハイライト
+                    if (!this.state.isGameOver && cards[this.state.revealIndex]) {
+                        cards[this.state.revealIndex].classList.add('current');
+                    }
                 }, 100);
+
+                // ゲームオーバー状態なら結果を表示
+                if (this.state.isGameOver) {
+                    this.showGameOver(!this.state.hasError);
+                }
             },
 
             // New method to handle clicks anywhere on the result screen
@@ -1146,12 +1221,14 @@
                     // 全てめくり終わったタイミングで、ミスがあったかどうかで結果を変える
                     setTimeout(() => {
                         this.showGameOver(!this.state.hasError);
+                        this.saveState();
                     }, 1000);
                 } else {
                     setTimeout(() => {
                         const nextCard = cards[this.state.revealIndex];
                         nextCard.classList.add('current');
                         nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        this.saveState();
                     }, 500);
                 }
             },
@@ -1171,19 +1248,34 @@
             },
 
             // --- 状態保存 ---
+            // --- 状態保存 ---
             saveState() {
-                localStorage.setItem('価値観当てゲーム_players', JSON.stringify(this.state.players));
-                localStorage.setItem('価値観当てゲーム_topic', this.state.topic);
+                const s = { ...this.state };
+                delete s.timerId; // タイマーIDは保存しない
+                localStorage.setItem('ito_game_state', JSON.stringify(s));
             },
             loadState() {
-                const saved = localStorage.getItem('価値観当てゲーム_players');
-                if (saved) {
-                    this.state.players = JSON.parse(saved);
-                    this.state.playerCount = this.state.players.length;
-                    document.getElementById('player-count-val').innerText = this.state.playerCount;
+                try {
+                    const saved = localStorage.getItem('ito_game_state');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        // マージ（既存のデフォルト値を上書き）
+                        this.state = { ...this.state, ...parsed };
+
+                        // DOMへの反映
+                        if (this.state.playerCount) {
+                             document.getElementById('player-count-val').innerText = this.state.playerCount;
+                        }
+                        if (this.state.timerSetting) {
+                             document.getElementById('timer-setting-val').innerText = this.state.timerSetting;
+                        }
+                        if (this.state.topic) {
+                            document.getElementById('topic-input').value = this.state.topic;
+                        }
+                    }
+                } catch (e) {
+                    console.error('State load failed:', e);
                 }
-                const topic = localStorage.getItem('価値観当てゲーム_topic');
-                if (topic) document.getElementById('topic-input').value = topic;
             },
 
             registerSW() {
