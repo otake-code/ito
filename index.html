@@ -367,6 +367,8 @@
         /* Drag Sort (Full screen scroll supported by parent) */
         .sortable-list {
             width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
             position: relative;
             /* touch-action: none; を削除：ブラウザや環境によってドラッグ開始を阻害する場合があるため */
         }
@@ -744,39 +746,56 @@
         </section>
 
         <!-- 画面8：トーク & 並び替え (統合画面) -->
-        <section id="screen-game-play" class="screen scrollable-screen">
-            <div class="topic-header" style="width:100%; background:rgba(0,0,0,0.05); padding:6px 15px; border-radius:12px; margin-bottom:8px;">
-                <p id="timer-topic" style="color:#000; font-size:1.1rem; font-weight:800; text-align:center;"></p>
-            </div>
+        <section id="screen-game-play" class="screen fixed-layout">
+            <div class="screen-header" style="padding-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                <div class="topic-header" style="width:100%; background:var(--accent-color); padding:10px 15px; border-radius:12px; margin-bottom:8px; display:flex; align-items:center; justify-content:center;">
+                    <p id="timer-topic" style="color:var(--text-color); font-size:1.1rem; font-weight:800; text-align:center; margin:0;"></p>
+                </div>
 
-            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px;">
-                <div id="timer-display" class="timer-val" style="margin: 0; font-size: 2.5rem; color: #000;">03:00</div>
-                <div class="timer-controls" style="gap:8px;">
-                    <button class="secondary" style="width:60px; height:40px; padding:0; min-width:60px; font-size:0.9rem;" onclick="app.adjustTimer(-60)">-1分</button>
-                    <button class="secondary" style="width:60px; height:40px; padding:0; min-width:60px; font-size:0.9rem;" onclick="app.adjustTimer(60)">+1分</button>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%;">
+                    <div id="timer-display" class="timer-val" style="margin: 0; font-size: 2.2rem; color: var(--text-color);">03:00</div>
+                    <div class="timer-controls" style="gap:8px;">
+                        <button class="secondary" style="width:50px; height:40px; padding:0; min-width:50px; font-size:0.9rem;" onclick="app.adjustTimer(-60)">-1分</button>
+                        <button class="secondary" style="width:50px; height:40px; padding:0; min-width:50px; font-size:0.9rem;" onclick="app.adjustTimer(60)">+1分</button>
+                    </div>
+                </div>
+                <div style="width: 100%; text-align: center; margin-top: 5px;">
+                     <p class="centered" style="font-size:0.9rem; font-weight:bold; color:var(--text-muted); margin:0;">↓ 小さい順に並び替え ↓</p>
                 </div>
             </div>
 
-            <p class="centered mb-10" style="font-size:1rem; font-weight:bold; color:var(--text-muted);">小さい順に並び替え</p>
-            <div id="sortable-list" class="sortable-list" style="width: 100%;">
-                <!-- JSで並び替えUI -->
+            <div class="screen-content" style="padding-top: 10px;">
+                <div id="sortable-list" class="sortable-list">
+                    <!-- JSで並び替えUI -->
+                </div>
             </div>
 
-            <div class="btn-group">
+            <div class="btn-group" style="padding: 10px 20px 20px 20px; background: var(--bg-color); border-top: 1px solid rgba(0,0,0,0.05);">
                 <button class="primary" onclick="app.finishGamePlay()">決定</button>
             </div>
         </section>
 
         <!-- 画面10：結果発表 -->
-        <section id="screen-result" class="screen" onclick="app.handleResultClick(event)">
-            <h2 class="screen-title">結果発表</h2>
+        <section id="screen-result" class="screen fixed-layout" onclick="app.handleResultClick(event)">
             <div id="game-status" class="game-status"></div>
-            <div id="reveal-container" class="reveal-container">
-                <!-- タップで次をめくる -->
+
+            <div class="screen-header" style="padding-bottom:10px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+                <h2 class="screen-title" style="margin-bottom:10px;">結果発表</h2>
+                <div class="reveal-label" style="padding:5px;">▲ 大きい</div>
             </div>
-            <div id="result-btns" class="btn-group" style="margin-top:auto; display:none;">
-                <button class="primary" onclick="app.startGame()">次のゲームへ</button>
-                <button class="secondary" onclick="app.navTo('players')">設定へ</button>
+
+            <div class="screen-content" style="padding:10px 20px;">
+                <div id="reveal-container" class="reveal-container" style="padding:0;">
+                    <!-- タップで次をめくる -->
+                </div>
+            </div>
+
+            <div class="btn-group" style="padding:10px 20px 20px 20px; background:var(--bg-color); border-top:1px solid rgba(0,0,0,0.05); gap:10px;">
+                <div class="reveal-label" style="padding:5px;">▼ 小さい</div>
+                <div id="result-btns" style="display:none; flex-direction:column; gap:16px; width:100%; align-items:center;">
+                    <button class="primary" onclick="app.startGame()">次のゲームへ</button>
+                    <button class="secondary" onclick="app.navTo('players')">設定へ</button>
+                </div>
             </div>
         </section>
     </div>
@@ -1109,12 +1128,6 @@
                 // this.state.isGameOver = false; // ここでリセットしない（finishGamePlayで行う）
                 // this.state.hasError = false;   // 同上
 
-                // Label: Small (Bottom - Appended first)
-                const smallLabel = document.createElement('div');
-                smallLabel.className = 'reveal-label';
-                smallLabel.innerText = '▼ 小さい';
-                container.appendChild(smallLabel);
-
                 // Display from Small (Bottom) to Large (Top)
                 // sortingOrder is [Large ... Small] (User input: Top to Bottom)
                 // We want to append Small first (Bottom), so we need to reverse sortingOrder.
@@ -1146,12 +1159,6 @@
                     container.appendChild(card);
                 });
 
-                // Label: Big (Top - Appended last)
-                const bigLabel = document.createElement('div');
-                bigLabel.className = 'reveal-label';
-                bigLabel.innerText = '▲ 大きい';
-                container.appendChild(bigLabel);
-
                 setTimeout(() => {
                     const cards = document.querySelectorAll('.reveal-card');
                     // 次にめくるべきカードをハイライト
@@ -1168,8 +1175,8 @@
 
             // New method to handle clicks anywhere on the result screen
             handleResultClick(e) {
-                // Do nothing if clicking buttons or interactions within them
-                if (e.target.closest('button')) return;
+                // Ignore clicks on header or footer areas (only allow clicks in content)
+                if (e.target.closest('.screen-header') || e.target.closest('.btn-group') || e.target.closest('button')) return;
 
                 // Only trigger if game is not over
                 if (!this.state.isGameOver) {
