@@ -195,13 +195,13 @@
             border: none;
             border-radius: var(--radius);
             padding: 16px 32px;
-            font-size: 1.1rem;
+            font-size: 1.3rem; /* Larger font for better visibility */
             font-weight: 700;
             cursor: pointer;
             transition: transform 0.1s, opacity 0.2s;
             width: auto; /* Not full width */
             min-width: 200px; /* Minimum reasonable width */
-            height: 60px; /* Explicit height for consistency */
+            height: 64px; /* Explicit height for consistency */
             max-width: 100%;
             touch-action: manipulation; /* Eliminate click delay */
         }
@@ -987,13 +987,17 @@
         </section>
 
         <!-- 画面3：ゲーム設定 -->
-        <section id="screen-game-setup" class="screen" style="padding-top: 50px;"> <!-- Add padding for back button -->
-            <button class="btn-back" onclick="app.navTo('players')">
-                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-            </button>
-            <h2 class="screen-title" style="margin-bottom: 20px;">ゲーム設定</h2>
+        <section id="screen-game-setup" class="screen fixed-layout">
 
-            <div class="screen-content" style="padding: 0 20px;">
+        <button class="btn-back" onclick="app.navTo('players')">
+            <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        </button>
+
+        <div class="screen-header">
+            <h2 class="screen-title" style="margin-bottom: 20px;">ゲーム設定</h2>
+        </div>
+
+        <div class="screen-content" style="padding: 10px 20px;">
                 <!-- お題設定 -->
                 <div class="setup-card">
                     <label class="setup-label">お題を決めよう！</label>
@@ -1045,13 +1049,13 @@
 
                     <!-- 4. List Mode -->
                     <div id="tab-list" class="tab-content">
-                         <p class="mode-description">
+                        <p class="mode-description">
                             <span class="mode-title"> お題を一覧から選ぶ</span>
                         </p>
                         <div style="display: flex; align-items: center; justify-content: center; height: 100%;">
-                             <button class="secondary" onclick="app.showTopicListModal()" style="padding: 10px 20px;">
+                            <button class="secondary" onclick="app.showTopicListModal()" style="padding: 10px 20px;">
                                 お題一覧を開く
-                             </button>
+                            </button>
                         </div>
                     </div>
 
@@ -1061,20 +1065,21 @@
 
                 <!-- タイマー設定 -->
                 <div class="setup-card">
-                    <label class="setup-label">トーク時間</label>
+                    <label class="setup-label">トーク時間 （分）</label>
                     <div class="number-control" style="justify-content: center;">
                         <button class="secondary" style="width:60px; height:60px; font-size:1.5rem;" onclick="app.updateTimerSetting(-1)">◀</button>
                         <div id="timer-setting-val" class="number-value" style="font-size:3rem; width:100px;">3</div>
                         <button class="secondary" style="width:60px; height:60px; font-size:1.5rem;" onclick="app.updateTimerSetting(1)">▶</button>
                     </div>
-                    <p style="text-align:center; color:var(--text-muted); font-weight:bold; margin-top:5px;">分</p>
+                    <!-- <p style="text-align:center; color:var(--text-muted); font-weight:bold; margin-top:5px;">分</p> -->
                 </div>
             </div>
 
             <div class="btn-group">
                 <button class="primary" onclick="app.startGame()">設定OK！始める</button>
             </div>
-        </section>
+
+</section>
 
         <!-- 画面4：数字確認案内 -->
         <section id="screen-dist-info" class="screen centered dist-screen">
